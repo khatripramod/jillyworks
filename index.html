@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon - Cinematography Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #000;
+            overflow: hidden;
+            height: 100vh;
+            color: white;
+            position: relative;
+        }
+        
+        .theater {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            perspective: 1500px;
+        }
+        
+        /* Camera flashes with improved realism */
+        .flash-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            pointer-events: none;
+        }
+        
+        .flash {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+            mix-blend-mode: screen;
+        }
+        
+        .flash.active {
+            opacity: 1;
+            width: 300vw;
+            height: 300vw;
+            margin-left: -150vw;
+            margin-top: -150vw;
+            transition: opacity 0.1s ease-out;
+        }
+        
+        /* Flash positions with more coverage */
+        .flash:nth-child(1) { top: 15%; left: 20%; }
+        .flash:nth-child(2) { top: 25%; left: 65%; }
+        .flash:nth-child(3) { top: 60%; left: 15%; }
+        .flash:nth-child(4) { top: 70%; left: 75%; }
+        .flash:nth-child(5) { top: 40%; left: 40%; }
+        .flash:nth-child(6) { top: 30%; left: 80%; }
+        
+        /* Film grain overlay for cinematic feel */
+        .film-grain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+            z-index: 30;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+        
+        /* Realistic flowing curtains with enhanced bendiness and flow */
+        .stage {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .curtain-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .curtain-wrap {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+        }
+        
+        .curtain-left, .curtain-right {
+            position: absolute;
+            width: 51%; /* Slightly overlapping */
+            height: 110%; /* Extra height to create bottom pooling effect */
+            top: -5%;
+            background-image: linear-gradient(to right, #4a0000, #8B0000);
+            z-index: 20;
+            box-shadow: inset 0 0 70px rgba(0, 0, 0, 0.9);
+            border-bottom-right-radius: 30% 10%;
+            border-bottom-left-radius: 30% 10%;
+            transform-origin: top center;
+        }
+        
+        .curtain-left {
+            left: 0;
+            transform: translateX(0) rotateZ(0deg);
+        }
+        
+        .curtain-right {
+            right: 0;
+            transform: translateX(0) rotateZ(0deg);
+        }
+        
+        /* Curtain texture with enhanced fabric effect */
+        .curtain-left:before, .curtain-right:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0 C 20 10, 40 30, 40 50 C 40 70, 20 90, 0 100 L 100 100 C 80 90, 60 70, 60 50 C 60 30, 80 10, 100 0 L 0 0' fill='rgba(0,0,0,0.15)'/%3E%3C/svg%3E");
+            background-size: 150px 150px;
+            opacity: 0.7;
+        }
+        
+        .curtain-left:after, .curtain-right:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(139, 0, 0, 0.3) 0%,
+                rgba(99, 0, 0, 0.5) 40%,
+                rgba(70, 0, 0, 0.7) 80%,
+                rgba(50, 0, 0, 0.9) 100%
+            );
+        }
+        
+        /* Detailed fabric folds and wrinkles */
+        .curtain-left:before {
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.2) 0%, transparent 50%, rgba(0,0,0,0.2) 100%),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0 C 20 10, 40 30, 40 50 C 40 70, 20 90, 0 100 L 100 100 C 80 90, 60 70, 60 50 C 60 30, 80 10, 100 0 L 0 0' fill='rgba(0,0,0,0.15)'/%3E%3C/svg%3E");
+        }
+        
+        .curtain-right:before {
+            background-image: 
+                linear-gradient(to left, rgba(0,0,0,0.2) 0%, transparent 50%, rgba(0,0,0,0.2) 100%),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0 C 20 10, 40 30, 40 50 C 40 70, 20 90, 0 100 L 100 100 C 80 90, 60 70, 60 50 C 60 30, 80 10, 100 0 L 0 0' fill='rgba(0,0,0,0.15)'/%3E%3C/svg%3E");
+        }
+        
+        /* Top curtain rod with gold finials */
+        .curtain-rod {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background: linear-gradient(to bottom, #555, #333);
+            border-bottom: 2px solid #666;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 21;
+        }
+        
+        .curtain-rod:before, .curtain-rod:after {
+            content: "";
+            position: absolute;
+            top: -12px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, #d4af37, #926f00);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .curtain-rod:before {
+            left: -12px;
+        }
+        
+        .curtain-rod:after {
+            right: -12px;
+        }
+        
+        /* Enhanced curtain wavy folds with different depths and more dynamic shape */
+        .fold {
+            position: absolute;
+            top: 0;
+            width: 7%;
+            height: 105%;
+            background: linear-gradient(to right, 
+                rgba(0, 0, 0, 0.7) 0%, 
+                rgba(0, 0, 0, 0.1) 50%, 
+                rgba(0, 0, 0, 0.7) 100%
+            );
+            box-shadow: -10px 0 20px rgba(0, 0, 0, 0.6);
+            border-radius: 0 0 30% 30%;
+        }
+        
+        /* Uneven fold positioning for more realistic look */
+        .curtain-left .fold:nth-child(1) { left: 8%; height: 102%; width: 6%; }
+        .curtain-left .fold:nth-child(2) { left: 19%; height: 105%; width: 8%; }
+        .curtain-left .fold:nth-child(3) { left: 29%; height: 101%; width: 5%; }
+        .curtain-left .fold:nth-child(4) { left: 38%; height: 107%; width: 7%; }
+        .curtain-left .fold:nth-child(5) { left: 48%; height: 102%; width: 6%; }
+        .curtain-left .fold:nth-child(6) { left: 57%; height: 106%; width: 8%; }
+        .curtain-left .fold:nth-child(7) { left: 69%; height: 101%; width: 6%; }
+        .curtain-left .fold:nth-child(8) { left: 81%; height: 104%; width: 5%; }
+        .curtain-left .fold:nth-child(9) { left: 92%; height: 103%; width: 7%; }
+        
+        .curtain-right .fold:nth-child(1) { left: 7%; height: 106%; width: 7%; }
+        .curtain-right .fold:nth-child(2) { left: 18%; height: 102%; width: 5%; }
+        .curtain-right .fold:nth-child(3) { left: 28%; height: 104%; width: 8%; }
+        .curtain-right .fold:nth-child(4) { left: 39%; height: 101%; width: 6%; }
+        .curtain-right .fold:nth-child(5) { left: 49%; height: 107%; width: 7%; }
+        .curtain-right .fold:nth-child(6) { left: 59%; height: 102%; width: 6%; }
+        .curtain-right .fold:nth-child(7) { left: 72%; height: 105%; width: 8%; }
+        .curtain-right .fold:nth-child(8) { left: 83%; height: 101%; width: 5%; }
+        .curtain-right .fold:nth-child(9) { left: 93%; height: 103%; width: 7%; }
+        
+        /* Stage lighting effects */
+        .stage-lights {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 15;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .spotlight {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+        
+        .spotlight.center {
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at center, rgba(255,220,150,0.15) 0%, rgba(255,220,150,0) 70%);
+        }
+        
+        .spotlight.left {
+            top: -50%;
+            left: -80%;
+            background: radial-gradient(circle at 30% center, rgba(150,220,255,0.1) 0%, rgba(150,220,255,0) 70%);
+        }
+        
+        .spotlight.right {
+            top: -50%;
+            left: 30%;
+            background: radial-gradient(circle at 70% center, rgba(255,150,220,0.1) 0%, rgba(255,150,220,0) 70%);
+        }
+        
+        .spotlight.active {
+            opacity: 1;
+        }
+        
+        /* Stage content with improved typography */
+        .stage-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+        }
+        
+        .coming-soon {
+            font-family: 'Cinzel', serif;
+            font-size: 6.5vw;
+            font-weight: bold;
+            letter-spacing: 15px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 
+                         0 0 30px rgba(255, 215, 0, 0.6);
+            transform: scale(0.8) translateY(50px);
+            opacity: 0;
+            position: relative;
+            transition: all 1.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+        
+        .coming-soon:after {
+            content: "";
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(255,215,0,0.7), transparent);
+            transform: scaleX(0);
+            transition: transform 1.5s ease 0.5s;
+        }
+        
+        .coming-soon.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        
+        .coming-soon.active:after {
+            transform: scaleX(1);
+        }
+        
+        .studio-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5vw;
+            letter-spacing: 5px;
+            color: rgba(255,255,255,0.8);
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.2s ease 1.2s;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        
+        .studio-name.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Enhanced Director board with realistic clapper movement */
+        .clapperboard {
+            position: relative;
+            width: 380px;
+            max-width: 80vw;
+            height: 260px;
+            margin-top: 50px;
+            perspective: 1000px;
+            transform: scale(0.8) translateY(50px);
+            opacity: 0;
+            transition: all 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.5s;
+            filter: drop-shadow(0 15px 15px rgba(0,0,0,0.6));
+        }
+        
+        .clapperboard.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        
+        .board-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+            border: 3px solid #222;
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5),
+                        inset 0 0 20px rgba(0,0,0,0.3);
+            background-image: 
+                linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%),
+                linear-gradient(45deg, rgba(0,0,0,0.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,0.1) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+        
+        .board-content {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-rows: auto 1fr auto auto;
+            padding: 15px;
+            box-sizing: border-box;
+            background-color: #0a0a0a;
+        }
+        
+        .board-header {
+            color: #d4af37;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .board-header div {
+            padding: 8px;
+            border-right: 1px solid #333;
+        }
+        
+        .board-header div:last-child {
+            border-right: none;
+        }
+        
+        .board-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            height: 70px;
+            border-bottom: 1px solid #333;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .board-fields div {
+            border-right: 1px solid #333;
+            padding: 5px;
+        }
+        
+        .board-fields div:last-child {
+            border-right: none;
+        }
+        
+        .board-info {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-template-rows: auto auto auto;
+            align-items: center;
+            text-align: left;
+            color: #ccc;
+            font-weight: bold;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            margin: 10px 0;
+        }
+        
+        .board-info div {
+            padding: 5px 8px;
+        }
+        
+        .board-info-label {
+            text-align: right;
+            padding-right: 15px !important;
+            color: #d4af37;
+        }
+        
+        .board-settings {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 14px;
+            color: #888;
+            padding: 5px 0;
+            font-family: 'Montserrat', sans-serif;
+            border-top: 1px solid #222;
+            margin-top: 5px;
+        }
+        
+        .board-settings span {
+            margin-left: 15px;
+            position: relative;
+        }
+        
+        .board-settings span.active {
+            color: #d4af37;
+            font-weight: 600;
+        }
+        
+        .board-settings span.active:after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background-color: #d4af37;
+        }
+        
+        /* Realistic clapper mechanism with improved animation */
+        .board-clapper {
+            position: absolute;
+            width: calc(100% + 6px);
+            height: 45px;
+            top: -3px;
+            left: -3px;
+            transform-origin: top left;
+            transform: rotate(0deg);
+            z-index: 5;
+            border: 3px solid #222;
+            box-sizing: content-box;
+            background: #111;
+            overflow: visible;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        /* Hinge mechanism */
+        .clapper-hinge {
+            position: absolute;
+            width: 40px;
+            height: 45px;
+            background-color: #222;
+            border-radius: 3px;
+            top: -3px;
+            left: -3px;
+            z-index: 6;
+            box-shadow: 
+                0 0 10px rgba(0,0,0,0.7),
+                inset 0 1px 1px rgba(255,255,255,0.1),
+                inset 0 -1px 1px rgba(0,0,0,0.7);
+            overflow: visible;
+            border: 1px solid #111;
+            background-image: linear-gradient(to bottom, #2a2a2a, #111);
+        }
+        
+        /* Screws on the hinge with enhanced detail */
+        .clapper-hinge::before, .clapper-hinge::after, .board-base::after, .board-base::before {
+            content: "";
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle at center, #999, #666);
+            border-radius: 50%;
+            border: 1px solid #444;
+            box-shadow: 
+                inset 0 0 2px #222,
+                0 1px 1px rgba(0,0,0,0.5);
+        }
+        
+        .clapper-hinge::before {
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .clapper-hinge::after {
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* Additional screws on main board */
+        .board-base::after {
+            width: 6px;
+            height: 6px;
+            top: 42px;
+            left: 20px;
+        }
+        
+        .board-base::before {
+            width: 6px;
+            height: 6px;
+            top: 22px;
+            left: 20px;
+        }
+        
+        .clapper-content {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* The top part of the clapper with diagonal stripes enhanced */
+        .clapper-diagonal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                #eee,
+                #eee 15px,
+                #111 15px,
+                #111 30px
+            );
+            z-index: 1;
+            box-shadow: inset 0 -2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .clapper-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            padding-left: 45px;
+            color: #d4af37;
+            font-weight: bold;
+            font-size: 22px;
+            font-family: 'Montserrat', sans-serif;
+            z-index: 2;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            letter-spacing: 2px;
+        }
+        
+        /* Countdown timer */
+        .countdown {
+            position: absolute;
+            bottom: 5%;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 10;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease 2.5s;
+        }
+        
+        .countdown.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .countdown-item {
+            margin: 0 15px;
+            text-align: center;
+        }
+        
+        .countdown-number {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5vw;
+            font-weight: 600;
+            color: #d4af37;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        
+        .countdown-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1vw;
+            color: rgba(255,255,255,0.7);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 5px;
+        }
+        
+        /* Marquee at the bottom */
+        .marquee {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.7);
+            color: #d4af37;
+            padding: 10px 0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 1s ease 3s;
+        }
+        
+        .marquee.active {
+            opacity: 1;
+        }
+        
+        .marquee-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 20s linear infinite;
+        }
+        
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .coming-soon {
+                font-size: 10vw;
+                letter-spacing: 8px;
+            }
+            
+            .studio-name {
+                font-size: 4vw;
+            }
+            
+            .clapperboard {
+                width: 300px;
+                height: 220px;
+            }
+            
+            .countdown-number {
+                font-size: 6vw;
+            }
+            
+            .countdown-label {
+                font-size: 2.5vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theater">
+        <!-- Camera flashes -->
+        <div class="flash-container">
+            <div class="flash"></div>
+            <div class="flash"></div>
+            <div class="flash"></div>
+            <div class="flash"></div>
+            <div class="flash"></div>
+            <div class="flash"></div>
+        </div>
+        
+        <!-- Film grain overlay -->
+        <div class="film-grain"></div>
+        
+        <!-- Stage lighting -->
+        <div class="stage-lights">
+            <div class="spotlight center"></div>
+            <div class="spotlight left"></div>
+            <div class="spotlight right"></div>
+        </div>
+        
+        <!-- Stage with curtains -->
+        <div class="stage">
+            <div class="curtain-container">
+                <div class="curtain-rod"></div>
+                <div class="curtain-wrap">
+                    <div class="curtain-left">
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                    </div>
+                    <div class="curtain-right">
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                        <div class="fold"></div>
+                    </div>
+                </div>
+                <div class="stage-content">
+                    <h1 class="coming-soon">COMING SOON</h1>
+                    <div class="studio-name">ZILLYWORKS CINEMATOGRAPHY STUDIO</div>
+                    
+                    <div class="clapperboard">
+                        <div class="board-clapper">
+                            <div class="clapper-content">
+                                <div class="clapper-diagonal"></div>
+                                <div class="clapper-text">PRODUCTION</div>
+                            </div>
+                        </div>
+                        <div class="clapper-hinge"></div>
+                        <div class="board-base">
+                            <div class="board-content">
+                                <div class="board-header">
+                                    <div>ROLL</div>
+                                    <div>SCENE</div>
+                                    <div>TAKE</div>
+                                </div>
+                                <div class="board-fields">
+                                    <div>001</div>
+                                    <div>01</div>
+                                    <div>01</div>
+                                </div>
+                                <div class="board-info">
+                                    <div class="board-info-label">DIRECTOR:</div>
+                                    <div>Zillyworks</div>
+                                    <div class="board-info-label">CAMERA:</div>
+                                    <div>ARRI ALEXA LF</div>
+                                    <div class="board-info-label">DATE:</div>
+                                    <div>COMING 2025</div>
+                                </div>
+                                <div class="board-settings">
+                                    <span class="active">Day</span>
+                                    <span>Night</span>
+                                    <span class="active">Int</span>
+                                    <span>Ext</span>
+                                    <span>MOS</span>
+                                    <span class="active">Sync</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="countdown">
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="days">00</div>
+                            <div class="countdown-label">Days</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="hours">00</div>
+                            <div class="countdown-label">Hours</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="minutes">00</div>
+                            <div class="countdown-label">Minutes</div>
+                        </div>
+                        <div class="countdown-item">
+                            <div class="countdown-number" id="seconds">00</div>
+                            <div class="countdown-label">Seconds</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="marquee">
+            <div class="marquee-content">
+                • NOW IN PRODUCTION • PREMIERING SOON • STAY TUNED FOR UPDATES • FOLLOW US ON SOCIAL MEDIA • #ZILLYWORKSFILMS • NOW IN PRODUCTION • PREMIERING SOON • STAY TUNED FOR UPDATES • FOLLOW US ON SOCIAL MEDIA • #ZILLYWORKSFILMS •
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elements
+            const flashes = document.querySelectorAll('.flash');
+            const curtainLeft = document.querySelector('.curtain-left');
+            const curtainRight = document.querySelector('.curtain-right');
+            const stageContent = document.querySelector('.stage-content');
+            const comingSoon = document.querySelector('.coming-soon');
+            const studioName = document.querySelector('.studio-name');
+            const clapperboard = document.querySelector('.clapperboard');
+            const boardClapper = document.querySelector('.board-clapper');
+            const spotlights = document.querySelectorAll('.spotlight');
+            const countdown = document.querySelector('.countdown');
+            const marquee = document.querySelector('.marquee');
+            
+            // Set a launch date (3 months from now)
+            const launchDate = new Date();
+            launchDate.setMonth(launchDate.getMonth() + 3);
+            
+            // Update countdown function
+            function updateCountdown() {
+                const now = new Date();
+                const diff = launchDate - now;
+                
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+            }
+            
+            // Update countdown immediately and then every second
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            
+            // Timeline configuration
+            const timeline = {
+                initialDelay: 800,
+                flashSequenceDuration: 2000,    // Reduced from 4000
+                flashCount: 10,                 // Reduced from 15
+                curtainDelay: 300,              // Reduced from 500
+                curtainDuration: 1800,          // Reduced from 3500
+                contentFadeDelay: 300,          // Reduced from 500
+                contentFadeDuration: 1000,      // Reduced from 1500
+                comingSoonDelay: 500,           // Reduced from 800
+                studioNameDelay: 800,           // Reduced from 1200
+                clapperboardDelay: 1000,        // Reduced from 1500
+                clapperUpDelay: 800,            // Reduced from 1000
+                clapperUpDuration: 350,         // Reduced from 500
+                clapperDownDelay: 300,          // Reduced from 400
+                clapperDownDuration: 200,       // Reduced from 250
+                countdownDelay: 1500,           // Reduced from 2500
+                marqueeDelay: 1800              // Reduced from 3000
+            };
+            
+            // Start the sequence
+            setTimeout(() => {
+                // Activate spotlights
+                spotlights.forEach(light => light.classList.add('active'));
+                
+                // Camera flash sequence
+                startFlashSequence();
+                
+                // After flashes, prepare curtains - reduced overall waiting time
+                setTimeout(() => {
+                    // Add waviness to curtains
+                    addCurtainWaviness();
+                    
+                    // Open curtains almost immediately
+                    setTimeout(() => {
+                        openCurtains();
+                        
+                        // Fade in stage content more quickly
+                        setTimeout(() => {
+                            stageContent.style.transition = `opacity ${timeline.contentFadeDuration}ms ease-in`;
+                            stageContent.style.opacity = '1';
+                            
+                            // Show coming soon text
+                            setTimeout(() => {
+                                comingSoon.classList.add('active');
+                                
+                                // Show studio name
+                                setTimeout(() => {
+                                    studioName.classList.add('active');
+                                    
+                                    // Show clapperboard
+                                    setTimeout(() => {
+                                        clapperboard.classList.add('active');
+                                        
+                                        // Show countdown
+                                        setTimeout(() => {
+                                            countdown.classList.add('active');
+                                            
+                                            // Show marquee
+                                            setTimeout(() => {
+                                                marquee.classList.add('active');
+                                            }, timeline.marqueeDelay);
+                                            
+                                            // First clapper action - goes UP
+                                            setTimeout(() => {
+                                                // Clapper goes up
+                                                boardClapper.style.transition = `transform ${timeline.clapperUpDuration}ms cubic-bezier(0.68, -0.55, 0.265, 1.55)`;
+                                                boardClapper.style.transform = 'rotate(-75deg)';
+                                                
+                                                // Then comes DOWN
+                                                setTimeout(() => {
+                                                    boardClapper.style.transition = `transform ${timeline.clapperDownDuration}ms cubic-bezier(0.68, -0.55, 0.265, 1.55)`;
+                                                    boardClapper.style.transform = 'rotate(0deg)';
+                                                    
+                                                    // Play clap sound (simulated with flashes)
+                                                    setTimeout(() => {
+                                                        triggerFlash(flashes[0], 0.9);
+                                                        
+                                                        // Add another flash for emphasis
+                                                        setTimeout(() => {
+                                                            triggerFlash(flashes[2], 0.7);
+                                                            
+                                                            // No more random flashes after clapperboard animation
+                                                        }, 120);
+                                                    }, timeline.clapperDownDuration / 2);
+                                                    
+                                                }, timeline.clapperDownDelay);
+                                                
+                                            }, timeline.clapperUpDelay);
+                                            
+                                        }, timeline.countdownDelay);
+                                        
+                                    }, timeline.clapperboardDelay);
+                                    
+                                }, timeline.studioNameDelay);
+                                
+                            }, timeline.comingSoonDelay);
+                            
+                        }, timeline.contentFadeDelay);
+                        
+                    }, 400); // Reduced from 800 - curtains open sooner
+                    
+                }, timeline.flashSequenceDuration + timeline.curtainDelay);
+                
+            }, timeline.initialDelay);
+            
+            // Add waviness to curtains for more realism
+            function addCurtainWaviness() {
+                const leftFolds = document.querySelectorAll('.curtain-left .fold');
+                const rightFolds = document.querySelectorAll('.curtain-right .fold');
+                
+                // Add initial rotation to curtains for draped look
+                curtainLeft.style.transition = 'transform 1.5s ease-out';
+                curtainRight.style.transition = 'transform 1.5s ease-out';
+                curtainLeft.style.transform = 'translateX(0) rotateZ(-1deg)';
+                curtainRight.style.transform = 'translateX(0) rotateZ(1deg)';
+                
+                // Animate left curtain folds with varied movements
+                leftFolds.forEach((fold, index) => {
+                    const delay = index * 80;
+                    setTimeout(() => {
+                        fold.style.transition = 'transform 1.5s ease-in-out';
+                        // More dramatic movement with both vertical and horizontal shifts
+                        const yShift = Math.random() * 12 - 6;
+                        const xShift = Math.random() * 8 - 4;
+                        const rotation = Math.random() * 2 - 1;
+                        fold.style.transform = `translateY(${yShift}px) translateX(${xShift}px) rotateZ(${rotation}deg)`;
+                    }, delay);
+                });
+                
+                // Animate right curtain folds
+                rightFolds.forEach((fold, index) => {
+                    const delay = index * 80;
+                    setTimeout(() => {
+                        fold.style.transition = 'transform 1.5s ease-in-out';
+                        const yShift = Math.random() * 12 - 6;
+                        const xShift = Math.random() * 8 - 4;
+                        const rotation = Math.random() * 2 - 1;
+                        fold.style.transform = `translateY(${yShift}px) translateX(${xShift}px) rotateZ(${rotation}deg)`;
+                    }, delay);
+                });
+            }
+            
+            // Flash sequence function with more dynamic flashes
+            function startFlashSequence() {
+                const flashInterval = timeline.flashSequenceDuration / timeline.flashCount;
+                let flashIndex = 0;
+                
+                const flashTimer = setInterval(() => {
+                    // Pick a random flash element
+                    const randomIndex = Math.floor(Math.random() * flashes.length);
+                    const intensity = Math.random() * 0.5 + 0.5; // Between 0.5 and 1
+                    triggerFlash(flashes[randomIndex], intensity);
+                    
+                    // Occasionally trigger multiple flashes at once
+                    if(Math.random() > 0.7) {
+                        setTimeout(() => {
+                            const anotherIndex = Math.floor(Math.random() * flashes.length);
+                            triggerFlash(flashes[anotherIndex], intensity * 0.7);
+                        }, 50 + Math.random() * 100);
+                    }
+                    
+                    flashIndex++;
+                    if (flashIndex >= timeline.flashCount) {
+                        clearInterval(flashTimer);
+                    }
+                }, flashInterval);
+            }
+            
+            // Trigger individual flash with improved effect
+            function triggerFlash(flashElement, intensity = 1) {
+                // Randomize position slightly for more realism
+                const randomX = Math.random() * 20 - 10;
+                const randomY = Math.random() * 20 - 10;
+                
+                flashElement.style.left = `${parseFloat(flashElement.style.left || 0) + randomX}%`;
+                flashElement.style.top = `${parseFloat(flashElement.style.top || 0) + randomY}%`;
+                
+                flashElement.classList.add('active');
+                flashElement.style.opacity = intensity;
+                
+                setTimeout(() => {
+                    flashElement.classList.remove('active');
+                }, 100 + Math.random() * 50);
+            }
+            
+            // Open curtains function
+            function openCurtains() {
+                curtainLeft.style.transition = `transform ${timeline.curtainDuration}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+                curtainRight.style.transition = `transform ${timeline.curtainDuration}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+                
+                curtainLeft.style.transform = 'translateX(-100%) rotateZ(-2deg)';
+                curtainRight.style.transform = 'translateX(100%) rotateZ(2deg)';
+            }
+            
+            // Add occasional subtle spotlight intensity changes
+            setInterval(() => {
+                if(Math.random() > 0.5) {
+                    const randomLight = spotlights[Math.floor(Math.random() * spotlights.length)];
+                    const originalOpacity = randomLight.style.opacity;
+                    randomLight.style.transition = 'opacity 1.5s ease-in-out';
+                    randomLight.style.opacity = Math.random() * 0.3 + 0.2;
+                    
+                    setTimeout(() => {
+                        randomLight.style.opacity = originalOpacity || '0.2';
+                    }, 1500 + Math.random() * 2000);
+                }
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
