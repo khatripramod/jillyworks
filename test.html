@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        #debug {
+            margin-top: 20px;
+            font-size: 12px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Contact Us</h1>
+        
+        <div id="success-message" class="alert alert-success">
+            Your message has been sent successfully!
+        </div>
+        
+        <div id="error-message" class="alert alert-error">
+            An error occurred. Please try again.
+        </div>
+        
+        <!-- This form directly posts to Google Apps Script -->
+        <!-- Method 1: Direct form POST -->
+        <form id="direct-form" method="POST" target="hidden-iframe">
+            <div class="form-group">
+                <label for="name">Full Name*</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address*</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number*</label>
+                <input type="tel" id="phone" name="phone" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Message*</label>
+                <textarea id="message" name="message" required></textarea>
+            </div>
+            
+            <button type="submit">Submit</button>
+        </form>
+        
+        <!-- Hidden form for JSON submission -->
+        <!-- Method 2: JSON submission via hidden form -->
+        <form id="json-form" style="display:none;">
+            <input type="hidden" id="json-data" name="json-data">
+            <button type="submit">Submit JSON</button>
+        </form>
+        
+        <div id="debug" style="display:none;">
+            <p>Debug info will appear here</p>
+        </div>
+    </div>
+    
+    <!-- Hidden iframe to receive response without page reload -->
+    <iframe name="hidden-iframe" id="hidden-iframe" style="display:none;"></iframe>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Replace with your Google Apps Script web app URL
+            const scriptURL = 'https://script.google.com/macros/s/AKfycbwQCzlLk5ZLpEpqhxvUfq_LRGSUBA2rQkNGUABr9LDv-rchocqNfXhixd-uroCEnBWD/exec';
+            
+            // Get elements
+            const directForm = document.getElementById('direct-form');
+            const jsonForm = document.getElementById('json-form');
+            const successMessage = document.getElementById('success-message');
+            const errorMessage = document.getElementById('error-message');
+            const debugDiv = document.getElementById('debug');
+            const iframe = document.getElementById('hidden-iframe');
+            
+            // Set the form's action to the script URL
+            directForm.action = scriptURL;
+            
+            // Enable debug mode (set to true to see debug info)
+            const debugMode = true;
+            if (debugMode) {
+                debugDiv.style.display = 'block';
+            }
+            
+            function logDebug(message) {
+                if (debugMode) {
+                    debugDiv.innerHTML += "<p>" + message + "</p>";
+                    console.log(message);
+                }
+            }
+            
+            // Listen for form submission
+            directForm.addEventListener('submit', function(event) {
+                // Don't prevent default - let the form submit naturally
+                
+                logDebug("Form submitted to: " + scriptURL);
+                
+                // Reset messages
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'none';
+                
+                // Try JSON submission as backup
+                const formData = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    message: document.getElementById('message').value
+                };
+                
+                logDebug("Form data: " + JSON.stringify(formData));
+                
+                // Also try the JSON method if direct form fails
+                setTimeout(function() {
+                    tryJsonSubmission(formData);
+                }, 2000);
+            });
+            
+            // Function to try JSON submission as backup
+            function tryJsonSubmission(formData) {
+                logDebug("Trying JSON submission as backup...");
+                
+                // Create a new XMLHttpRequest
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', scriptURL, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                
+                xhr.onload = function() {
+                    logDebug("XHR response received: " + xhr.status);
+                    logDebug("Response text: " + xhr.responseText);
+                    
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        successMessage.style.display = 'block';
+                        directForm.reset();
+                    } else {
+                        errorMessage.style.display = 'block';
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    logDebug("XHR error occurred");
+                    // Don't show error - the direct form might have worked
+                };
+                
+                // Send the JSON data
+                try {
+                    xhr.send(JSON.stringify(formData));
+                    logDebug("JSON data sent");
+                } catch (error) {
+                    logDebug("Error sending JSON: " + error.message);
+                }
+            }
+            
+            // Handle iframe load to show success message
+            iframe.addEventListener('load', function() {
+                logDebug("Iframe loaded - form submission complete");
+                
+                try {
+                    // Try to get response from iframe
+                    const iframeContent = iframe.contentDocument || iframe.contentWindow.document;
+                    logDebug("Iframe content: " + iframeContent.body.innerHTML);
+                    
+                    // Check if response contains success message
+                    if (iframeContent.body.innerHTML.includes('success')) {
+                        successMessage.style.display = 'block';
+                        directForm.reset();
+                    } else if (iframeContent.body.innerHTML.includes('error')) {
+                        errorMessage.style.display = 'block';
+                    } else {
+                        // Assume success if we can't determine
+                        successMessage.style.display = 'block';
+                        directForm.reset();
+                    }
+                } catch (error) {
+                    logDebug("Error reading iframe content: " + error.message);
+                    // Assume success even if we can't read the iframe
+                    successMessage.style.display = 'block';
+                    directForm.reset();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
