@@ -1,4 +1,3 @@
-
 // Mobile menu toggle
 const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
 const navLinks = document.querySelector('.nav-links');
@@ -264,7 +263,7 @@ backToTopButton.addEventListener('click', function() {
     });
 });
 
-// Chatbot functionality
+// Chatbot functionality - UPDATED for better mobile support
 const chatbotButton = document.querySelector('.chatbot-button');
 const chatbotWindow = document.querySelector('.chatbot-window');
 const closeChat = document.querySelector('.close-chat');
@@ -272,19 +271,54 @@ const chatInput = document.getElementById('chatInput');
 const chatSend = document.getElementById('chatSend');
 const chatMessages = document.getElementById('chatMessages');
 
+// Check if we're on a mobile device
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+// Adjust the chatbot window position and size based on device
+function adjustChatbotWindow() {
+    if (isMobile()) {
+        // Mobile styles are applied through CSS
+        document.body.classList.add('mobile-chat-open');
+    } else {
+        document.body.classList.remove('mobile-chat-open');
+    }
+}
+
 // Toggle chatbot window
 chatbotButton.addEventListener('click', function() {
     chatbotWindow.classList.toggle('active');
+    adjustChatbotWindow();
+    
     if (chatbotWindow.classList.contains('active')) {
         chatInput.focus();
+        
+        // Prevent scrolling of background on mobile when chat is open
+        if (isMobile()) {
+            document.body.style.overflow = 'hidden';
+        }
+    } else {
+        // Re-enable scrolling when chat is closed
+        document.body.style.overflow = '';
     }
 });
 
+// Close chatbot
 closeChat.addEventListener('click', function() {
     chatbotWindow.classList.remove('active');
+    document.body.style.overflow = '';
+    document.body.classList.remove('mobile-chat-open');
 });
 
-// Bot responses (you can expand this)
+// Adjust on resize
+window.addEventListener('resize', function() {
+    if (chatbotWindow.classList.contains('active')) {
+        adjustChatbotWindow();
+    }
+});
+
+// Bot responses
 const botResponses = {
     greetings: {
         keywords: ['hi', 'hello', 'hey', 'namaste', 'namaskar', 'greetings'],
@@ -316,7 +350,7 @@ const botResponses = {
     },
     contact: {
         keywords: ['contact', 'call', 'email', 'reach', 'phone', 'address', 'location', 'office', 'visit'],
-        response: 'You can reach us at:\n📧 Email: info@zillyworks.com\n📞 Phone: +1 (555) 123-4567\n📍 Address: 123 Creative Street, City, Country\nWould you like to schedule a meeting?'
+        response: 'You can reach us at:<br>📧 Email: zillyworks123@gmail.com<br>📞 Phone: 9861121588, 9808113864<br>📍 Address: Lalitpur, Nepal<br>Would you like to schedule a meeting?'
     },
     timeline: {
         keywords: ['time', 'duration', 'how long', 'when', 'deadline', 'delivery', 'schedule', 'timeline'],
@@ -341,21 +375,20 @@ const botResponses = {
 };
 
 function addMessage(message, isUser = false) {
-const messageDiv = document.createElement('div');
-messageDiv.classList.add('message');
-messageDiv.classList.add(isUser ? 'user' : 'bot');
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message');
+    messageDiv.classList.add(isUser ? 'user' : 'bot');
 
-// Use innerHTML for bot messages, but keep user messages safe
-if (isUser) {
-messageDiv.textContent = message;
-} else {
-messageDiv.innerHTML = message;
+    // Use innerHTML for bot messages, but keep user messages safe
+    if (isUser) {
+        messageDiv.textContent = message;
+    } else {
+        messageDiv.innerHTML = message;
+    }
+
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
-
-chatMessages.appendChild(messageDiv);
-chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
 
 function showTypingIndicator() {
     const typingDiv = document.createElement('div');
@@ -389,7 +422,6 @@ function getBotResponse(userMessage) {
     return 'I\'d be happy to help! You can ask me about our services, pricing, portfolio, or how we can assist with your project. What would you like to know?';
 }
 
-
 function handleUserMessage() {
     const message = chatInput.value.trim();
     if (message) {
@@ -415,3 +447,18 @@ chatInput.addEventListener('keypress', function(e) {
         handleUserMessage();
     }
 });
+
+// Add mobile chat styling
+const mobileChatStyle = document.createElement('style');
+mobileChatStyle.textContent = `
+    body.mobile-chat-open {
+        position: relative;
+    }
+    
+    @media (max-width: 768px) {
+        .chatbot-window.active {
+            z-index: 9999;
+        }
+    }
+`;
+document.head.appendChild(mobileChatStyle);
