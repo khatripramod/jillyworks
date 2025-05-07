@@ -1,0 +1,57 @@
+# Cloudflare Wrangler local state and cache
+.wrangler/
+.dev.vars
+.env
+.env.*
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+worker/
+.output/
+
+# Editor and OS specific files
+.DS_Store
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.log
+
+# Local data and logs
+*.log
+logs/
+*.sqlite3
+*.backup
+tmp/
+
+# Local certificates
+*.pem
+*.key
+*.crt
+
+# Misc
+.npmrc
+.yarnrc
+.pnpm-store/
+.pnpmfile.cjs
+
+wrangler.toml
