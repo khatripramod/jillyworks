@@ -346,7 +346,7 @@ const botResponses = {
     },
     contact: {
         keywords: ['contact', 'call', 'email', 'reach', 'phone', 'address', 'location', 'office', 'visit'],
-        response: 'You can reach us at:<br>📧 Email: zillyworks123@gmail.com<br>📞 Phone: 9861121588, 9808113864<br>📍 Address: Lalitpur, Nepal<br>Would you like to schedule a meeting?'
+        response: 'You can reach us at:<br>📧 Email: info@zillyworks.com.np<br>📞 Phone: 9861121588, 9808113864<br>📍 Address: Lalitpur, Nepal<br>Would you like to schedule a meeting?'
     },
     timeline: {
         keywords: ['time', 'duration', 'how long', 'when', 'deadline', 'delivery', 'schedule', 'timeline'],
@@ -367,6 +367,10 @@ const botResponses = {
     bye: {
         keywords: ['bye', 'goodbye', 'see you', 'later', 'exit', 'quit'],
         response: 'Thank you for chatting with us! Have a great day and feel free to return if you have more questions.'
+    },
+    yes: {
+        keywords: ['yes', 'ok', 'sure', 'yeah'],
+        response: 'For more information, please fill out the "Get in Touch" form, or feel free to contact us directly via phone, message, or email:\n📞 9861121588 / 9808113864\n📧 info@zillyworks.com.np\n\nWe\'re here to help and look forward to hearing from you!'
     }
 };
 
